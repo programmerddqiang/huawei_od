@@ -1,5 +1,5 @@
 """
-天然蓄水池
+蓄水池
 """
 # coding:utf-8
 # JSRUN引擎2.0，支持多达30种语言在线运行，全仿真在线交互输入输出。
@@ -9,68 +9,43 @@ import math
 from itertools import combinations
 from re import match
 
-height = [int(x) for x in input().split(" ")]
-n = len(height)
+params = [int(x) for x in input().split(" ")]
 
-idx1 = [0 for x in range(n)]
-for i in range(1, n):
-    if (idx1[i - 1] > height[i - 1]):
-        idx1[i] = idx1[i - 1]
+def trap(height):
+    n = len(height)
+    left, right = 0, n - 1
+    left_max, right_max = 0, 0
+    ans = 0
+    left_bound = n      # 最左边积水柱子的索引
+    right_bound = -1    # 最右边积水柱子的索引
+    while left < right:
+        water_level = min(left_max, right_max)
+        # 处理左边
+        if height[left] <= water_level:
+            if water_level - height[left] > 0:  # 真正有积水
+                ans += water_level - height[left]
+                left_bound = min(left_bound, left)
+                right_bound = max(right_bound, left)
+            left += 1
+            continue
+        # 处理右边
+        if height[right] <= water_level:
+            if water_level - height[right] > 0:
+                ans += water_level - height[right]
+                left_bound = min(left_bound, right)
+                right_bound = max(right_bound, right)
+            right -= 1
+            continue
+        # 更新左右最大值
+        left_max = max(left_max, height[left])
+        right_max = max(right_max, height[right])
+    # 输出结果
+    if left_bound > right_bound:
+        print(0)
     else:
-        idx1[i] = height[i - 1]
+        print(left_bound-1, right_bound+1)
+        print(ans)
+    return ans
 
-idx2 = [0 for x in range(n)]
-i = n - 2
-while (i >= 0):
-    if (idx2[i + 1] > height[i + 1]):
-        idx2[i] = idx2[i + 1]
-    else:
-        idx2[i] = height[i + 1]
-    i -= 1
+trap(params)
 
-new_height = [0 for x in range(n)]
-h_set = set([])
-i = 0
-while (True):
-    if (i >= n - 1):
-        break
-    else:
-        if (max(0, min(idx1[i], idx2[i]) - height[i]) != 0):
-            new_height[i] = max(0, min(idx1[i], idx2[i]) - height[i]) + height[i]
-            h_set.add(new_height[i])
-    i += 1
-
-count = 0
-left = 0
-right = 0
-for ele in h_set:
-    start_index = 0
-    while (new_height[start_index] < ele or height[start_index] >= ele):
-        start_index += 1
-
-    end_index = n - 1
-    while (new_height[end_index] < ele or height[end_index] >= ele):
-        end_index -= 1
-
-    tmp = 0
-    i = start_index
-    while (True):
-        if (i >= end_index + 1):
-            if (tmp > right):
-                count = start_index - 1
-                left = end_index + 1
-                right = tmp
-            elif (tmp == right):
-                if (end_index - start_index + 1 < left - count - 1):
-                    count = start_index - 1
-                    left = end_index + 1
-            break
-        else:
-            if (ele - height[i] > 0):
-                tmp += ele - height[i]
-        i += 1
-
-if (right == 0):
-    print(0)
-else:
-    print(str(count) + " " + str(left) + ":" + str(right))
